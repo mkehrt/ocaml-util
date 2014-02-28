@@ -1,5 +1,15 @@
 (* SIGBOVIK 2014 Markov chain-based sequence generator *)
 
+module Util : sig
+  val listFlatten : 'a option list -> 'a list 
+end = struct
+  let rec listFlatten l =
+    match l with
+    | []           -> []
+    | (Some x)::tl -> x::(listFlatten tl) 
+    | None:: tl    -> listFlatten tl
+end
+
 module Trie = struct
   type 'a t =
    | Leaf
