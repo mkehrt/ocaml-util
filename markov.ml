@@ -4,8 +4,23 @@ type 'a trie =
 
 type 'a weightedTrie = ('a * float) trie
 
-let _ = Random.self_init
-let pick (l : 'a * float list) = ()
+module Picker : sig
+    val pick : ('a * float) list -> 'a option
+end = struct
+  let _ = Random.self_init
+
+  let rec pick' l cumwt goalwt =
+    match l with
+     | []         -> None
+     | (x,_)::[]  -> Some(x)
+     | (x,wt)::tl ->
+         if cumwt <= goalwt && cumwt +. wt > goalwt
+         then Some(x)
+         else pick' tl (cumwt +. wt) goalwt
+
+  let pick l =
+    pick' l 0.0 (Random.float 1.0)    
+end
 
 (* let pickPath t = *)
  
