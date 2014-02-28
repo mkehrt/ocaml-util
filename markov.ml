@@ -1,8 +1,12 @@
-type 'a trie =
- | Leaf
- | Node of ('a * 'a trie) list
+(* SIGBOVIK 2014 Markov chain-based sequence generator *)
 
-type 'a weightedTrie = ('a * float) trie
+module Trie = struct
+  type 'a t =
+   | Leaf
+   | Node of ('a * 'a t) list
+
+  type 'a weighted = ('a * float) t
+end
 
 module Picker : sig
     val pick : ('a * float) list -> 'a option
