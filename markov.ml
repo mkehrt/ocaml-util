@@ -10,12 +10,28 @@ end = struct
     | None:: tl    -> listFlatten tl
 end
 
-module Trie = struct
+module Trie : sig
+  type 'a t
+  type 'a weight
+  type 'a count
+  
+  val normalize : 'a count -> 'a weight
+end = struct
   type 'a t =
    | Leaf
    | Node of ('a * 'a t) list
 
-  type 'a weighted = ('a * float) t
+  type 'a weight = ('a * float) t
+  type 'a count = ('a * int) t
+
+  let rec normalize wted = match wted with
+    | Leaf -> Leaf
+    | Node cts ->
+      begin
+        let totali = List.fold_left (fun acc curr -> acc + curr) 0 (List.map (fun ((_,ct),_) -> ct) cts) in
+        let total = float_of_int totali in
+        Node (List.map (fun ((x,ct), cted) -> ((x, float_of_int ct /. total), normalize cted)) cts)
+      end
 end
 
 module Picker : sig
