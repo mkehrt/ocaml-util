@@ -87,8 +87,8 @@ module Trie : sig
   type 'a weight
   type 'a count
 
-  val countIterate: 'a list -> 'a count -> 'a count
-  (* val countFromList: 'a list list -> 'a count *)
+  val countIterate: 'a count -> 'a list -> 'a count
+  val countFromList: 'a list list -> 'a count
   
   val normalize : 'a count -> 'a weight
   val pickPath : 'a weight -> 'a list
@@ -100,15 +100,18 @@ end = struct
   type 'a weight = ('a * float) t
   type 'a count = ('a * int) t
 
-  let rec countIterate l (ct: 'a count) = match (l, ct) with
-    | ([], ct') -> ct'
-    | (x::tl, Leaf) -> Node [((x, 1), countIterate tl Leaf)]
-    | (x::tl, Node cts) ->
+  let rec countIterate (ct: 'a count) l = match (ct, l) with
+    | (ct', []) -> ct'
+    | (Leaf, x::tl) -> Node [((x, 1), countIterate Leaf tl)]
+    | (Node cts, x::tl) ->
       begin
         let zipper = LZ.unzipByPredicate cts (fun ((y,_),_) -> y = x) ((x, 0), Leaf) in
-        let zipper' = LZ.modify (fun ((y,i), ct') -> ((y,i+1), countIterate tl ct')) zipper in
+        let zipper' = LZ.modify (fun ((y,i), ct') -> ((y,i+1), countIterate ct' tl)) zipper in
         Node (LZ.zip zipper')
       end
+
+  (* Type inference can't seem to understand the pointsfree version :-( *)
+  let countFromList ll = List.fold_left countIterate Leaf ll
 
 
   let rec normalize wted = match wted with
