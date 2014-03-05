@@ -19,6 +19,9 @@ module Util : sig
     val getOrElse : 'a -> 'a option -> 'a
     val map : ('a -> 'b) -> 'a option -> 'b option
   end
+  module File : sig
+    val readFile : string -> string
+  end
 end = struct
 
   module List = struct
@@ -67,11 +70,18 @@ end = struct
        | Some(x) -> Some(f x)
        | None -> None
   end
+
+  module File = struct
+    let readFile filename = 
+      let inch = open_in filename in
+      ""
+  end
 end
 
 module L = Util.List
 module LZ = Util.List.Zipper
 module O = Util.Option
+module F = Util.File
 
 
 module Picker : sig
@@ -98,6 +108,10 @@ module Trie : sig
   type 'a weight
   type 'a count
 
+  val empty : 'a t
+  val emptyWeight : 'a weight
+  val emptyCount : 'a count
+
   val countIterate: 'a count -> 'a list -> 'a count
   val countFromList: 'a list list -> 'a count
   
@@ -110,6 +124,10 @@ end = struct
 
   type 'a weight = ('a * float) t
   type 'a count = ('a * int) t
+
+  let empty = Leaf
+  let emptyWeight = Leaf
+  let emptyCount = Leaf
 
   let rec countIterate (ct: 'a count) l = match (ct, l) with
     | (ct', []) -> ct'
@@ -165,5 +183,12 @@ module Run : sig
   val run : unit -> unit
 end = struct
   let run () =
-    
+    let argv = Array.to_list Sys.argv in
+    let filenames = List.tl argv in
+    let each acc curr = begin
+      let s = F.readFile curr in
+      L.slide 3 Trie.countIterate acc (Tokenizer.tokenize s)
+    end in
+    let trie = Trie.normalize (List.fold_left each Trie.emptyCount filenames) in
+    ()
 end
