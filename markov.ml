@@ -8,7 +8,7 @@ module Util : sig
     module Zipper : sig
       type 'a t
       val unzip : 'a list -> 'a -> 'a t
-      val unzipByPredicate : 'a list -> ('a -> bool) -> 'a t
+      val unzipByPredicate : 'a list -> ('a -> bool) -> 'a -> 'a t
       val modify : ('a -> 'a) -> 'a  t -> 'a t
       val map : ('a -> 'b) -> 'a t -> 'b t
       val zip : 'a t -> 'a list
@@ -29,12 +29,12 @@ end = struct
     module Zipper = struct
       type 'a t = 'a list * 'a * 'a list
 
-      let unzipByPredicate l p x =  match l with
+      let rec unzipByPredicate l p x =  match l with
         | [] -> (l,x,[])
         | y::tl ->
           if p y
           then ([], y, tl)
-          else let (l,z,r) = unzip tl y in (y::l, z, r)
+          else let (l,z,r) = unzipByPredicate tl p x in (y::l, z, r)
 
       let rec unzip l x = unzipByPredicate l (fun y -> x = y) x
 
@@ -100,14 +100,14 @@ end = struct
   type 'a weight = ('a * float) t
   type 'a count = ('a * int) t
 
-  val countIterate l ct = match (l, ct) with
+  let rec countIterate l (ct: 'a count) = match (l, ct) with
     | ([], ct') -> ct'
     | (x::tl, Leaf) -> Node [((x, 1), countIterate tl Leaf)]
     | (x::tl, Node cts) ->
       begin
-        let zipper = LZ.unzipByPredicate cts (fun ((y,_),_) -> y = x) ((x, 0), Leaf)
-        let zipper' = LZ.modify (fun ((y,i), ct') -> ((y,i+1), countIterate tl ct')
-        zip zipper'
+        let zipper = LZ.unzipByPredicate cts (fun ((y,_),_) -> y = x) ((x, 0), Leaf) in
+        let zipper' = LZ.modify (fun ((y,i), ct') -> ((y,i+1), countIterate tl ct')) zipper in
+        Node (LZ.zip zipper')
       end
 
 
