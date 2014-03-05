@@ -4,7 +4,8 @@
 module Util : sig
   module List : sig
     val flatten : 'a option list -> 'a list 
-    (* val find : ('a -> bool) -> 'a list -> 'a option *)
+    val take : int -> 'a list -> 'a list
+    val slide : int -> ('b ->'a list -> 'b) -> 'b -> 'a list -> 'b
     module Zipper : sig
       type 'a t
       val unzip : 'a list -> 'a -> 'a t
@@ -25,6 +26,15 @@ end = struct
     | []           -> []
     | (Some x)::tl -> x::(flatten tl) 
     | None:: tl    -> flatten tl
+
+   let rec take i l = match i with
+     | 0 -> []
+     | sn -> (List.hd l)::take (sn-1) l
+
+   let rec slide i f init l =
+     if List.length l < i
+     then init
+     else slide i f (f init (take i l)) (List.tl l)
 
     module Zipper = struct
       type 'a t = 'a list * 'a * 'a list
@@ -150,3 +160,4 @@ end = struct
     in
     List.rev (tokenize' [] 0)
 end
+
