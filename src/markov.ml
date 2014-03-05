@@ -82,6 +82,7 @@ end = struct
     pick' l 0.0 (Random.float 1.0)    
 end
 
+
 module Trie : sig
   type 'a t
   type 'a weight
@@ -132,3 +133,20 @@ end = struct
       end
 end
 
+module Tokenizer : sig
+  type t
+  val tokenize : string -> t list
+end = struct
+  type t = string
+
+  let r = Str.regexp "."
+  
+  (* Totally not thread safe.  Thanks, Ob^H^HOcaml. *)
+  let tokenize s = 
+    let rec tokenize' ss start =
+      if Str.string_match r s start
+      then tokenize' (Str.matched_string s :: ss) (Str.match_end ())
+      else ss
+    in
+    List.rev (tokenize' [] 0)
+end
