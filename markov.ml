@@ -8,6 +8,7 @@ module Util : sig
     module Zipper : sig
       type 'a t
       val unzip : 'a list -> 'a -> 'a t
+      val unzipByPredicate : 'a list -> ('a -> bool) -> 'a t
       val modify : ('a -> 'a) -> 'a  t -> 'a t
       val map : ('a -> 'b) -> 'a t -> 'b t
       val zip : 'a t -> 'a list
@@ -28,12 +29,14 @@ end = struct
     module Zipper = struct
       type 'a t = 'a list * 'a * 'a list
 
-      let rec unzip l x = match l with
+      let unzipByPredicate l p x =  match l with
         | [] -> (l,x,[])
         | y::tl ->
-          if y = x
+          if p y
           then ([], y, tl)
-          else let (l,z,r) = unzip tl x in (y::l, z, r)
+          else let (l,z,r) = unzip tl y in (y::l, z, r)
+
+      let rec unzip l x = unzipByPredicate l (fun y -> x = y) x
 
       let modify f (l,x,r) = (l, f x, r)
 
@@ -57,6 +60,7 @@ end = struct
 end
 
 module L = Util.List
+module LZ = Util.List.Zipper
 module O = Util.Option
 
 
@@ -83,8 +87,8 @@ module Trie : sig
   type 'a weight
   type 'a count
 
-  (* val countIterate: 'a list -> 'a count -> 'a count
-  val countFromList: 'a list list -> 'a count *)
+  val countIterate: 'a list -> 'a count -> 'a count
+  (* val countFromList: 'a list list -> 'a count *)
   
   val normalize : 'a count -> 'a weight
   val pickPath : 'a weight -> 'a list
@@ -96,11 +100,16 @@ end = struct
   type 'a weight = ('a * float) t
   type 'a count = ('a * int) t
 
-  (* val countIterate l ct = match (l, ct) with
+  val countIterate l ct = match (l, ct) with
     | ([], ct') -> ct'
-    | (x::tl, Leaf) -> Node [((x, 1), countIterate tl)]
-    | (x::tl, Node cts) -> (L.find (fun ((y, _), _) -> x = y) cts) *)
-    
+    | (x::tl, Leaf) -> Node [((x, 1), countIterate tl Leaf)]
+    | (x::tl, Node cts) ->
+      begin
+        let zipper = LZ.unzipByPredicate cts (fun ((y,_),_) -> y = x) ((x, 0), Leaf)
+        let zipper' = LZ.modify (fun ((y,i), ct') -> ((y,i+1), countIterate tl ct')
+        zip zipper'
+      end
+
 
   let rec normalize wted = match wted with
     | Leaf -> Leaf
