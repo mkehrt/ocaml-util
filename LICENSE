@@ -1,3 +1,7 @@
+The following license refers to code and other materials created primarily by
+Matthew Kehrt.  Other included materials may have other copyrights and licenses,
+which should be included with them.
+
 Copyright (c) 2014, Matthew Kehrt
 All rights reserved.
 
@@ -10,6 +14,10 @@ are permitted provided that the following conditions are met:
 * Redistributions in binary form must reproduce the above copyright notice, this
   list of conditions and the following disclaimer in the documentation and/or
   other materials provided with the distribution.
+
+* The names Matthew Kehrt or roseandsigil or any variants thereof, as they
+  refer to the creator of this software, may not be used to endorse or promote
+  products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
